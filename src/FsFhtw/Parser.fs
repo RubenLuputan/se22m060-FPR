@@ -1,0 +1,29 @@
+module Parser
+
+open System
+
+let safeEquals (it : string) (theOther : string) =
+    String.Equals(it, theOther, StringComparison.OrdinalIgnoreCase)
+
+[<Literal>]
+let HelpLabel = "Help"
+ 
+let (|AddOrder|UndoOrder|Help|ParseFailed|) (input : string)=
+    let parts = input.Split(' ') |> List.ofArray |> List.ofSeq
+    match parts with
+    | verb :: args when safeEquals verb (nameof Domain.AddOrder) ->
+        let isCategory (s : string) =  safeEquals s (nameof Domain.Category)
+        // find first occurance which is category verb
+        let categoryVerbIndex = args |> List.tryFindIndex isCategory
+        match categoryVerbIndex with
+        | None -> 
+            AddOrder(args, None)
+        | Some index -> 
+            if index + 1 < List.length args then
+                let categoryArgs = List.skip (index + 1) args
+                AddOrder(args, Some categoryArgs)
+            else 
+                ParseFailed
+    | [ verb ] when safeEquals verb (nameof Domain.UndoOrder) -> UndoOrder
+    | [ verb ] when safeEquals verb HelpLabel -> Help
+    | _ -> Help
