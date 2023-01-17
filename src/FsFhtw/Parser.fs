@@ -8,7 +8,7 @@ let safeEquals (it : string) (theOther : string) =
 [<Literal>]
 let HelpLabel = "Help"
  
-let (|AddOrder|UndoOrder|Help|ParseFailed|) (input : string)=
+let (|AddOrder|UndoOrder|RedoOrder|Help|ParseFailed|) (input : string)=
     let parts = input.Split(' ') |> List.ofArray |> List.ofSeq
     match parts with
     | verb :: args when safeEquals verb (nameof Domain.AddOrder) ->
@@ -21,9 +21,11 @@ let (|AddOrder|UndoOrder|Help|ParseFailed|) (input : string)=
         | Some index -> 
             if index + 1 < List.length args then
                 let categoryArgs = List.skip (index + 1) args
-                AddOrder(args, Some categoryArgs)
+                let filteredArgs = Seq.takeWhile (fun (i: string) -> i.ToLower() = "category" |> not) args
+                AddOrder(filteredArgs |> List.ofSeq, Some categoryArgs)
             else 
                 ParseFailed
     | [ verb ] when safeEquals verb (nameof Domain.UndoOrder) -> UndoOrder
+    | [ verb ] when safeEquals verb (nameof Domain.RedoOrder) -> RedoOrder
     | [ verb ] when safeEquals verb HelpLabel -> Help
     | _ -> Help

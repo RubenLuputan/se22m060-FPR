@@ -12,9 +12,10 @@ type State = Domain.State
 
 let read (input : string) : Message =
     match input with
-    | AddOrder(args, None) -> Domain.AddOrder |> DomainMessage
-    | AddOrder(args, Some cats) -> Domain.AddOrder |> DomainMessage
+    | AddOrder(args, None) -> Domain.AddOrder (args, []) |> DomainMessage
+    | AddOrder(args, Some cats) -> Domain.AddOrder (args, cats |> List.map (fun c -> {Name = c})) |> DomainMessage
     | UndoOrder -> Domain.UndoOrder |> DomainMessage
+    | RedoOrder -> Domain.RedoOrder |> DomainMessage
     | Help -> HelpRequested
     | ParseFailed -> NotParsable input
 
@@ -30,7 +31,7 @@ let evaluate (update : Domain.Message -> State -> State) (state : State) (msg : 
     match msg with
     | DomainMessage msg ->
         let newState = update msg state
-        let message = sprintf "The message was %A. New state is %A" msg newState
+        let message = sprintf " New state is %A" newState
         (newState, message)
     | HelpRequested ->
         let message = createHelpText ()
