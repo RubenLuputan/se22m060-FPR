@@ -12,12 +12,13 @@ type Customer = {
 
 type Product = { 
     Name: string
-    Customer: Customer
+    
 }
 
 type Order = {
     Products : Product list
     Categories: Cat[]
+    Customer: Customer
 }
 
 type Store = {
@@ -38,16 +39,22 @@ let init () : State = ImmutableStack.Empty
 let update (msg: Message) (model: State) : State =
     match msg with
     | AddOrder (input, cats) ->
-        let products : Product list = input |> List.map (fun p -> {Name = p; Customer = {Name = "se22m060"}})
+        let products : Product list = input |> List.map (fun p -> {Name = p})
         if model.IsEmpty
-            then model.Push {Orders = [{Products = products; Categories = cats |> Array.ofList}]}
-        else model.Push {Orders = [{Products = products; Categories = cats |> Array.ofList}] @ model.Peek().Orders }
+            then model.Push {Orders = [{Products = products; Categories = cats |> Array.ofList; Customer = {Name = "se22m060"}}]}
+        else model.Push {Orders = [{Products = products; Categories = cats |> Array.ofList; Customer = {Name = "se22m060"}}] @ model.Peek().Orders }
     | UndoOrder ->
         if model.IsEmpty
-            then ImmutableStack.Empty
+            then 
+                printf "Nothing to undo.\n"
+                ImmutableStack.Empty
         else
             RedoState.Push (model.Peek())
             model.Pop()
     | RedoOrder ->
-        model.Push (RedoState.Pop())
+        try model.Push (RedoState.Pop())
+        with
+        | _ ->
+            printf "Nothing to redo.\n"
+            model
     | _ -> model
