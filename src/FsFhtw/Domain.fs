@@ -31,6 +31,11 @@ type Message =
     | UndoOrder
     | RedoOrder
 
+//in hindsight state could have been a node along the lines of:
+//type private SetTree<'a> = 
+//  | Empty
+//  | Node of SetTree<'a> * 'a * SetTree<'a>
+//So that undo/redo would be even easier, just traversing the tree
 type State = ImmutableStack<Store>
 let private RedoState : Stack<Store> = Stack()
 
